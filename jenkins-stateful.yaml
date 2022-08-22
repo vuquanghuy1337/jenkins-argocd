@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jenkins
+spec:
+  selector:
+    matchLabels:
+      app: jenkins # has to match .spec.template.metadata.labels
+  serviceName: jenkins
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jenkins
+        name: jenkins
+      name: jenkins
+    spec:
+      serviceAccountName: jenkins
+      terminationGracePeriodSeconds: 10
+      containers:
+      - env:
+        - name: JAVA_OPTS
+          value: -Xmx2048m -Dhudson.slaves.NodeProvisioner.MARGIN=50 -Dhudson.slaves.NodeProvisioner.MARGIN0=0.85
+        name: jenkins
+        image: jenkins/jenkins:lts-alpine
+        ports:
+        - containerPort: 8080
+          name: jenkins
+        - containerPort: 50000
+          name: jenkins-agent
+        volumeMounts:
+        - name: jenkins-home
+          mountPath: /var/jenkins_home
+      volumes:
+        - name: jenkins-home
+          emptyDir: {}
